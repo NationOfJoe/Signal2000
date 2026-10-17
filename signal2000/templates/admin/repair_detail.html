@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf, device_name, status_badge, timeline %}
+{% block title %}תיקון #{{ repair.id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>תיקון #{{ repair.id }} {{ status_badge(repair.status) }}</h1>
+  <a class="button" href="{{ url_for('admin.repair_receipt', repair_id=repair.id) }}" target="_blank">🖨 קבלה ללקוח</a>
+</div>
+
+<div class="columns">
+  <section class="card">
+    <dl class="facts">
+      <dt>לקוח</dt><dd><a href="{{ url_for('admin.customer_detail', customer_id=repair.customer_id) }}">{{ repair.customer_name }}</a> · {{ repair.customer_phone }}</dd>
+      <dt>מכשיר</dt><dd><a href="{{ url_for('admin.device_detail', device_id=repair.device_id) }}">{{ device_name(repair) }}</a>
+        {% if repair.serial_number %}<span class="muted small">· {{ repair.serial_number }}</span>{% endif %}</dd>
+      <dt>תקלה</dt><dd>{{ repair.reported_issue }}</dd>
+      <dt>הגיע עם</dt><dd>{{ repair.accessories or '—' }}</dd>
+      <dt>אבחון</dt><dd>{{ repair.diagnosis or '—' }}</dd>
+      <dt>התקבל</dt><dd>{{ repair.received_at|dt }}</dd>
+      {% if repair.closed_at %}<dt>נמסר</dt><dd>{{ repair.closed_at|dt }}</dd>{% endif %}
+    </dl>
+
+    <h2>עדכון</h2>
+    <form method="post" action="{{ url_for('admin.repair_update', repair_id=repair.id) }}">
+      {{ csrf() }}
+      <div class="grid">
+        <label>סטטוס
+          <select name="status">
+            {% for key, label in STATUSES.items() %}
+              <option value="{{ key }}" {{ 'selected' if repair.status == key }}>{{ label }}</option>
+            {% endfor %}
+          </select></label>
+        <label>טכנאי
+          <select name="technician_id">
+            <option value="">— לא משויך —</option>
+            {% for t in technicians %}
+              <option value="{{ t.id }}" {{ 'selected' if repair.technician_id == t.id }}>{{ t.full_name }}</option>
+            {% endfor %}
+          </select></label>
+        <label>הצעת מחיר (₪)<input name="estimated_cost" inputmode="decimal" value="{{ repair.estimated_cost if repair.estimated_cost is not none else '' }}"></label>
+        <label>מחיר סופי (₪)<input name="final_cost" inputmode="decimal" value="{{ repair.final_cost if repair.final_cost is not none else '' }}"></label>
+      </div>
+      <label>הערה<textarea name="note" rows="2"></textarea></label>
+      <label class="check"><input type="checkbox" name="visible_to_customer" value="1" checked> הלקוח יראה את ההערה</label>
+      <button class="primary">שמירה</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>היסטוריה</h2>
+    {{ timeline(events) }}
+  </section>
+</div>
+{% endblock %}

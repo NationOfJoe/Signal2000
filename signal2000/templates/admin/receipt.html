@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>קבלה · תיקון #{{ repair.id }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 640px; margin: 24px auto; color: #000; background: #fff; }
+    h1 { margin: 0; font-size: 24px; }
+    .head { display: flex; justify-content: space-between; align-items: end; border-bottom: 2px solid #000; padding-bottom: 8px; }
+    .num { font-size: 32px; font-weight: bold; }
+    dl { display: grid; grid-template-columns: 130px 1fr; gap: 8px; }
+    dt { font-weight: bold; }
+    dd { margin: 0; }
+    .sign { margin-top: 48px; display: flex; justify-content: space-between; }
+    .sign div { border-top: 1px solid #000; width: 40%; padding-top: 4px; text-align: center; }
+    .note { font-size: 12px; margin-top: 24px; }
+    @media print { button { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="head">
+    <div><h1>Signal2000</h1><div>מעבדת תיקון מוצרי חשמל · חיפה</div></div>
+    <div class="num">#{{ repair.id }}</div>
+  </div>
+  <h2>אישור קבלת מכשיר לתיקון</h2>
+  <dl>
+    <dt>תאריך</dt><dd>{{ repair.received_at|dt }}</dd>
+    <dt>לקוח</dt><dd>{{ repair.customer_name }}</dd>
+    <dt>טלפון</dt><dd>{{ repair.customer_phone }}</dd>
+    <dt>מכשיר</dt><dd>{{ repair.device_type }} {{ repair.brand or '' }} {{ repair.model or '' }}</dd>
+    <dt>מספר סידורי</dt><dd>{{ repair.serial_number or '—' }}</dd>
+    <dt>תקלה</dt><dd>{{ repair.reported_issue }}</dd>
+    <dt>הגיע עם</dt><dd>{{ repair.accessories or '—' }}</dd>
+    <dt>הערכת מחיר</dt><dd>{{ repair.estimated_cost|money }}</dd>
+  </dl>
+  <p class="note">את מצב התיקון אפשר לבדוק באתר עם מספר הטלפון. יש להציג אישור זה באיסוף המכשיר.</p>
+  <div class="sign"><div>חתימת הלקוח</div><div>חתימת המעבדה</div></div>
+  <p><button onclick="window.print()">הדפסה</button></p>
+</body>
+</html>

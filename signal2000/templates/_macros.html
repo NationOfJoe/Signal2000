@@ -1,0 +1,52 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro status_badge(status) -%}
+  <span class="badge {{ STATUS_COLORS.get(status, 'gray') }}">{{ STATUSES.get(status, status) }}</span>
+{%- endmacro %}
+
+{% macro device_name(d) -%}
+  {{ d.device_type }}{% if d.brand or d.model %} · {{ d.brand or '' }} {{ d.model or '' }}{% endif %}
+{%- endmacro %}
+
+{% macro timeline(events) %}
+  <ol class="timeline">
+    {% for e in events %}
+      <li class="{{ '' if e.visible_to_customer else 'internal' }}">
+        <div class="when">{{ e.created_at|dt }}{% if e.user_name %} · {{ e.user_name }}{% endif %}
+          {% if not e.visible_to_customer %}<span class="tag">פנימי</span>{% endif %}</div>
+        {% if e.status %}<div>{{ status_badge(e.status) }}</div>{% endif %}
+        {% if e.note %}<div class="note">{{ e.note }}</div>{% endif %}
+      </li>
+    {% else %}
+      <li class="muted">אין עדיין אירועים</li>
+    {% endfor %}
+  </ol>
+{% endmacro %}
+
+{% macro repair_table(repairs, link_endpoint, show_customer=true) %}
+  {% if repairs %}
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>#</th>{% if show_customer %}<th>לקוח</th>{% endif %}<th>מכשיר</th><th>תקלה</th>
+        <th>סטטוס</th><th>טכנאי</th><th>התקבל</th></tr>
+    </thead>
+    <tbody>
+      {% for r in repairs %}
+        <tr>
+          <td><a href="{{ url_for(link_endpoint, repair_id=r.id) }}">{{ r.id }}</a></td>
+          {% if show_customer %}<td>{{ r.customer_name }}<div class="muted small">{{ r.customer_phone }}</div></td>{% endif %}
+          <td><a href="{{ url_for(link_endpoint, repair_id=r.id) }}">{{ device_name(r) }}</a></td>
+          <td class="clip">{{ r.reported_issue }}</td>
+          <td>{{ status_badge(r.status) }}</td>
+          <td>{{ r.technician_name or '—' }}</td>
+          <td class="nowrap">{{ r.received_at|dt }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    <p class="empty">אין תיקונים להצגה</p>
+  {% endif %}
+{% endmacro %}

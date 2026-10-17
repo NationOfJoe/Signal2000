@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf, device_name, status_badge, timeline %}
+{% block title %}תיקון #{{ repair.id }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('customer.my_devices') }}">המכשירים שלי</a> ›</p>
+<h1>תיקון #{{ repair.id }} · {{ device_name(repair) }}</h1>
+<p>{{ status_badge(repair.status) }}</p>
+
+{% if repair.status == 'waiting_approval' %}
+  <section class="card approve">
+    <h2>הצעת מחיר: {{ repair.estimated_cost|money }}</h2>
+    {% if repair.diagnosis %}<p>{{ repair.diagnosis }}</p>{% endif %}
+    <form method="post" action="{{ url_for('customer.decision', repair_id=repair.id) }}" class="inline">
+      {{ csrf() }}
+      <button class="primary" name="decision" value="approve">מאשר/ת את התיקון</button>
+      <button name="decision" value="decline">לא תודה</button>
+    </form>
+  </section>
+{% endif %}
+
+<div class="columns">
+  <section class="card">
+    <dl class="facts">
+      <dt>תקלה</dt><dd>{{ repair.reported_issue }}</dd>
+      <dt>התקבל</dt><dd>{{ repair.received_at|dt }}</dd>
+      {% if repair.diagnosis %}<dt>אבחון</dt><dd>{{ repair.diagnosis }}</dd>{% endif %}
+      <dt>הצעת מחיר</dt><dd>{{ repair.estimated_cost|money }}</dd>
+      {% if repair.final_cost is not none %}<dt>מחיר סופי</dt><dd>{{ repair.final_cost|money }}</dd>{% endif %}
+    </dl>
+  </section>
+  <section class="card">
+    <h2>מה קרה עד עכשיו</h2>
+    {{ timeline(events) }}
+  </section>
+</div>
+{% endblock %}

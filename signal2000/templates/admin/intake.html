@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf, device_name, status_badge %}
+{% block title %}קבלת מכשיר{% endblock %}
+{% block content %}
+<h1>קבלת מכשיר לתיקון</h1>
+
+<section class="card">
+  <h2>1. לקוח</h2>
+  <form method="get" class="inline">
+    <label>טלפון הלקוח
+      <input name="phone" value="{{ phone }}" inputmode="tel" placeholder="05X-XXXXXXX" required autofocus></label>
+    <button>חיפוש</button>
+  </form>
+  {% if customer %}
+    <div class="found">
+      ✔ לקוח קיים: <a href="{{ url_for('admin.customer_detail', customer_id=customer.id) }}"><strong>{{ customer.full_name }}</strong></a>
+      · {{ customer.phone }}{% if customer.address %} · {{ customer.address }}{% endif %}
+    </div>
+  {% elif looked_up %}
+    <p class="muted">לקוח חדש. מלאו את הפרטים למטה.</p>
+  {% endif %}
+</section>
+
+{% if looked_up %}
+<form method="post" class="card">
+  {{ csrf() }}
+  <input type="hidden" name="phone" value="{{ phone }}">
+  {% if customer %}
+    <input type="hidden" name="customer_id" value="{{ customer.id }}">
+  {% else %}
+    <h2>פרטי לקוח חדש</h2>
+    <div class="grid">
+      <label>שם מלא *<input name="full_name" value="{{ form.get('full_name', '') }}" required></label>
+      <label>טלפון<input value="{{ phone }}" disabled></label>
+      <label>אימייל<input name="email" type="email" value="{{ form.get('email', '') }}"></label>
+      <label>כתובת<input name="address" value="{{ form.get('address', '') }}"></label>
+    </div>
+  {% endif %}
+
+  <h2>2. מכשיר</h2>
+  {% set selected = form.get('device_id', 'new') %}
+  {% if devices %}
+    <div class="choices">
+      {% for d in devices %}
+        <label class="choice">
+          <input type="radio" name="device_id" value="{{ d.id }}" {{ 'checked' if selected == d.id|string }}>
+          {{ device_name(d) }}{% if d.serial_number %} <span class="muted small">מס' סידורי {{ d.serial_number }}</span>{% endif %}
+        </label>
+      {% endfor %}
+      <label class="choice">
+        <input type="radio" name="device_id" value="new" {{ 'checked' if selected == 'new' }}> מכשיר חדש
+      </label>
+    </div>
+  {% else %}
+    <input type="hidden" name="device_id" value="new">
+  {% endif %}
+  <div class="grid new-device">
+    <label>סוג מכשיר
+      <select name="device_type">
+        <option value="">בחרו…</option>
+        {% for t in device_types %}
+          <option {{ 'selected' if form.get('device_type') == t }}>{{ t }}</option>
+        {% endfor %}
+      </select></label>
+    <label>יצרן<input name="brand" value="{{ form.get('brand', '') }}" placeholder="Sony, Grundig…"></label>
+    <label>דגם<input name="model" value="{{ form.get('model', '') }}"></label>
+    <label>מספר סידורי<input name="serial_number" value="{{ form.get('serial_number', '') }}"></label>
+  </div>
+
+  <h2>3. התקלה</h2>
+  <label>תיאור התקלה מפי הלקוח *
+    <textarea name="reported_issue" rows="3" required>{{ form.get('reported_issue', '') }}</textarea></label>
+  <div class="grid">
+    <label>מה הגיע עם המכשיר<input name="accessories" value="{{ form.get('accessories', '') }}" placeholder="שלט, כבל, מטען…"></label>
+    <label>הערכת מחיר ראשונית (₪)<input name="estimated_cost" inputmode="decimal" value="{{ form.get('estimated_cost', '') }}"></label>
+  </div>
+  <button class="primary big">פתיחת תיקון</button>
+</form>
+{% endif %}
+{% endblock %}

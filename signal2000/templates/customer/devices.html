@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import device_name, status_badge %}
+{% block title %}המכשירים שלי{% endblock %}
+{% block content %}
+<h1>שלום {{ g.user.full_name }}</h1>
+<p class="muted">כאן אפשר לראות את כל המכשירים שהבאת אלינו ואת מצב התיקונים.</p>
+
+<div class="queue">
+  {% for d in devices %}
+    {% set repairs = repairs_by_device.get(d.id, []) %}
+    {% set latest = repairs[0] if repairs else none %}
+    <div class="ticket device-card">
+      <div class="ticket-head"><strong>{{ device_name(d) }}</strong>
+        {% if latest %}{{ status_badge(latest.status) }}{% endif %}</div>
+      {% if latest %}
+        {% if latest.status == 'waiting_approval' %}
+          <div class="callout">מחכים לאישור שלך להצעת מחיר של {{ latest.estimated_cost|money }}</div>
+        {% elif latest.status == 'ready' %}
+          <div class="callout green">המכשיר מוכן לאיסוף</div>
+        {% endif %}
+        <ul class="list">
+          {% for r in repairs %}
+            <li><a href="{{ url_for('customer.repair_detail', repair_id=r.id) }}">תיקון #{{ r.id }}</a>
+              · {{ r.received_at|dt }} · {{ STATUSES[r.status] }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="empty">עדיין אין מכשירים רשומים</p>
+  {% endfor %}
+</div>
+{% endblock %}

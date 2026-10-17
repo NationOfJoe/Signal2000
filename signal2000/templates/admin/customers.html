@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}לקוחות{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>לקוחות</h1>
+  <form method="get" class="inline">
+    <input name="q" value="{{ q }}" placeholder="שם, טלפון או אימייל">
+    <button>חיפוש</button>
+  </form>
+</div>
+{% if customers %}
+<div class="table-wrap">
+<table>
+  <thead><tr><th>שם</th><th>טלפון</th><th>כתובת</th><th>מכשירים</th><th>תיקונים</th><th>ביקור אחרון</th></tr></thead>
+  <tbody>
+    {% for c in customers %}
+      <tr>
+        <td><a href="{{ url_for('admin.customer_detail', customer_id=c.id) }}">{{ c.full_name }}</a></td>
+        <td class="nowrap">{{ c.phone }}</td>
+        <td>{{ c.address or '—' }}</td>
+        <td>{{ c.device_count }}</td>
+        <td>{{ c.repair_count }}</td>
+        <td class="nowrap">{{ c.last_visit|dt }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <p class="empty">לא נמצאו לקוחות</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf, device_name, repair_table %}
+{% block title %}{{ device.device_type }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('admin.customer_detail', customer_id=device.customer_id) }}">{{ device.customer_name }}</a> ›</p>
+<div class="page-head">
+  <h1>{{ device_name(device) }}</h1>
+  <a class="button primary" href="{{ url_for('admin.intake', customer_id=device.customer_id) }}">+ תיקון חדש</a>
+</div>
+
+<form method="post" class="card">
+  {{ csrf() }}
+  <div class="grid">
+    <label>סוג מכשיר
+      <select name="device_type">
+        {% for t in device_types %}<option {{ 'selected' if device.device_type == t }}>{{ t }}</option>{% endfor %}
+      </select></label>
+    <label>יצרן<input name="brand" value="{{ device.brand or '' }}"></label>
+    <label>דגם<input name="model" value="{{ device.model or '' }}"></label>
+    <label>מספר סידורי<input name="serial_number" value="{{ device.serial_number or '' }}"></label>
+  </div>
+  <label>הערות<textarea name="notes" rows="2">{{ device.notes or '' }}</textarea></label>
+  <button>שמירה</button>
+</form>
+
+<h2>היסטוריית תיקונים של המכשיר</h2>
+{{ repair_table(repairs, 'admin.repair_detail', show_customer=false) }}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import device_name, status_badge %}
+{% block title %}תור עבודה{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ 'התיקונים שלי' if mine_only else 'תור עבודה' }}</h1>
+  <nav class="tabs">
+    <a class="{{ '' if mine_only else 'active' }}" href="{{ url_for('tech.queue') }}">כל התור</a>
+    <a class="{{ 'active' if mine_only }}" href="{{ url_for('tech.queue', mine=1) }}">שלי</a>
+  </nav>
+</div>
+
+<div class="queue">
+  {% for r in repairs %}
+    <a class="ticket {{ 'mine' if r.technician_id == g.user.id }}" href="{{ url_for('tech.repair_detail', repair_id=r.id) }}">
+      <div class="ticket-head"><strong>#{{ r.id }}</strong> {{ status_badge(r.status) }}</div>
+      <div class="ticket-device">{{ device_name(r) }}</div>
+      <div class="ticket-issue">{{ r.reported_issue }}</div>
+      <div class="muted small">{{ r.received_at|dt }} · {{ r.technician_name or 'לא משויך' }}</div>
+    </a>
+  {% else %}
+    <p class="empty">התור ריק 🎉</p>
+  {% endfor %}
+</div>
+
+{% if waiting %}
+  <h2>ממתינים לאישור לקוח</h2>
+  <div class="queue">
+    {% for r in waiting %}
+      <a class="ticket" href="{{ url_for('tech.repair_detail', repair_id=r.id) }}">
+        <div class="ticket-head"><strong>#{{ r.id }}</strong> {{ status_badge(r.status) }}</div>
+        <div class="ticket-device">{{ device_name(r) }}</div>
+        <div class="muted small">{{ r.customer_name }} · {{ r.customer_phone }} · הצעה {{ r.estimated_cost|money }}</div>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

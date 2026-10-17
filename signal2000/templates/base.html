@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · Signal2000</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('auth.index') }}">Signal<span>2000</span></a>
+    {% if g.user %}
+      <nav>
+        {% if g.user.role == 'admin' %}
+          <a href="{{ url_for('admin.dashboard') }}">תיקונים</a>
+          <a href="{{ url_for('admin.intake') }}">קבלת מכשיר</a>
+          <a href="{{ url_for('admin.customers') }}">לקוחות</a>
+          <a href="{{ url_for('tech.queue') }}">תור טכנאים</a>
+          <a href="{{ url_for('admin.users') }}">צוות</a>
+        {% elif g.user.role == 'technician' %}
+          <a href="{{ url_for('tech.queue') }}">תור עבודה</a>
+          <a href="{{ url_for('tech.queue', mine=1) }}">התיקונים שלי</a>
+        {% else %}
+          <a href="{{ url_for('customer.my_devices') }}">המכשירים שלי</a>
+          <a href="{{ url_for('customer.shop') }}">חנות</a>
+        {% endif %}
+      </nav>
+      <form class="who" method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <span>{{ g.user.full_name }} · {{ ROLES[g.user.role] }}</span>
+        <button class="link">יציאה</button>
+      </form>
+    {% endif %}
+  </header>
+  <main>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

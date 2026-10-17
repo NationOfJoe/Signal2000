@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}כניסה{% endblock %}
+{% block content %}
+<div class="login card">
+  <h1>כניסה למערכת</h1>
+  <p class="muted">מעבדת תיקון מוצרי חשמל · חיפה</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>שם משתמש <span class="muted small">(לקוחות: מספר הטלפון)</span>
+      <input name="username" required autofocus autocomplete="username"></label>
+    <label>סיסמה
+      <input name="password" type="password" required autocomplete="current-password"></label>
+    <button class="primary">כניסה</button>
+  </form>
+</div>
+{% endblock %}

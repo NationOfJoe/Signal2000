@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import repair_table %}
+{% block title %}תיקונים{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>תיקונים</h1>
+  <a class="button primary" href="{{ url_for('admin.intake') }}">+ קבלת מכשיר</a>
+</div>
+
+<div class="stats">
+  {% for key in ['received', 'diagnosing', 'waiting_approval', 'in_repair', 'waiting_parts', 'ready'] %}
+    <a class="stat {{ 'active' if current == key }}" href="{{ url_for('admin.dashboard', status=key) }}">
+      <strong>{{ counts.get(key, 0) }}</strong><span>{{ STATUSES[key] }}</span></a>
+  {% endfor %}
+</div>
+
+<nav class="tabs">
+  <a class="{{ 'active' if current == 'open' }}" href="{{ url_for('admin.dashboard') }}">במעבדה</a>
+  <a class="{{ 'active' if current == 'closed' }}" href="{{ url_for('admin.dashboard', status='closed') }}">נמסרו</a>
+  <a class="{{ 'active' if current == 'all' }}" href="{{ url_for('admin.dashboard', status='all') }}">הכל</a>
+</nav>
+
+{{ repair_table(repairs, 'admin.repair_detail') }}
+{% endblock %}

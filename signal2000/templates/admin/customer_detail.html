@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf, device_name, repair_table %}
+{% block title %}{{ customer.full_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ customer.full_name }}</h1>
+  <a class="button primary" href="{{ url_for('admin.intake', customer_id=customer.id) }}">+ מכשיר חדש לתיקון</a>
+</div>
+
+<div class="columns">
+  <section class="card">
+    <h2>פרטי לקוח</h2>
+    <form method="post" action="{{ url_for('admin.customer_edit', customer_id=customer.id) }}">
+      {{ csrf() }}
+      <label>שם מלא<input name="full_name" value="{{ customer.full_name }}" required></label>
+      <label>טלפון<input name="phone" value="{{ customer.phone }}" required inputmode="tel"></label>
+      <label>אימייל<input name="email" type="email" value="{{ customer.email or '' }}"></label>
+      <label>כתובת<input name="address" value="{{ customer.address or '' }}"></label>
+      <label>הערות<textarea name="notes" rows="2">{{ customer.notes or '' }}</textarea></label>
+      <button>שמירה</button>
+    </form>
+    <p class="muted small">לקוח מאז {{ customer.created_at|dt }}</p>
+  </section>
+
+  <section class="card">
+    <h2>חשבון באתר</h2>
+    {% if account %}
+      <p>שם משתמש: <strong>{{ account.username }}</strong></p>
+      <form method="post" action="{{ url_for('admin.customer_account', customer_id=customer.id) }}" class="inline">
+        {{ csrf() }}
+        <input name="password" type="password" placeholder="סיסמה חדשה" minlength="6" required autocomplete="new-password">
+        <button>איפוס סיסמה</button>
+      </form>
+    {% else %}
+      <p class="muted">ללקוח אין עדיין חשבון. שם המשתמש יהיה מספר הטלפון.</p>
+      <form method="post" action="{{ url_for('admin.customer_account', customer_id=customer.id) }}" class="inline">
+        {{ csrf() }}
+        <input name="password" type="password" placeholder="סיסמה" minlength="6" required autocomplete="new-password">
+        <button>יצירת חשבון</button>
+      </form>
+    {% endif %}
+
+    <h2>מכשירים</h2>
+    <ul class="list">
+      {% for d in devices %}
+        <li><a href="{{ url_for('admin.device_detail', device_id=d.id) }}">{{ device_name(d) }}</a>
+          {% if d.serial_number %}<span class="muted small">· {{ d.serial_number }}</span>{% endif %}</li>
+      {% else %}
+        <li class="muted">אין מכשירים</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<h2>היסטוריית תיקונים</h2>
+{{ repair_table(repairs, 'admin.repair_detail', show_customer=false) }}
+{% endblock %}

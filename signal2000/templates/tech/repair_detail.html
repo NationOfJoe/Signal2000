@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf, device_name, status_badge, timeline %}
+{% block title %}תיקון #{{ repair.id }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('tech.queue') }}">תור עבודה</a> ›</p>
+<div class="page-head">
+  <h1>#{{ repair.id }} · {{ device_name(repair) }} {{ status_badge(repair.status) }}</h1>
+  {% if g.user.role == 'admin' %}
+    <a class="button" href="{{ url_for('admin.repair_detail', repair_id=repair.id) }}">פתיחה בניהול</a>
+  {% endif %}
+</div>
+
+<div class="columns">
+  <section class="card">
+    <dl class="facts">
+      <dt>תקלה</dt><dd class="big-text">{{ repair.reported_issue }}</dd>
+      <dt>מספר סידורי</dt><dd>{{ repair.serial_number or '—' }}</dd>
+      <dt>הגיע עם</dt><dd>{{ repair.accessories or '—' }}</dd>
+      <dt>לקוח</dt><dd>{{ repair.customer_name }} · {{ repair.customer_phone }}</dd>
+      <dt>התקבל</dt><dd>{{ repair.received_at|dt }}</dd>
+      <dt>טכנאי</dt><dd>{{ repair.technician_name or 'לא משויך' }}</dd>
+    </dl>
+
+    {% if g.user.role == 'technician' %}
+      {% if repair.technician_id is none %}
+        <form method="post" action="{{ url_for('tech.claim', repair_id=repair.id) }}">
+          {{ csrf() }}
+          <button class="primary big">אני לוקח את התיקון</button>
+        </form>
+      {% elif repair.technician_id == g.user.id %}
+        <h2>עדכון עבודה</h2>
+        <form method="post" action="{{ url_for('tech.update', repair_id=repair.id) }}">
+          {{ csrf() }}
+          <label>אבחון<textarea name="diagnosis" rows="3">{{ repair.diagnosis or '' }}</textarea></label>
+          <div class="grid">
+            <label>סטטוס
+              <select name="status">
+                <option value="{{ repair.status }}" selected>{{ STATUSES[repair.status] }} (נוכחי)</option>
+                {% for key in tech_statuses if key != repair.status %}
+                  <option value="{{ key }}">{{ STATUSES[key] }}</option>
+                {% endfor %}
+              </select></label>
+            <label>הצעת מחיר (₪)<input name="estimated_cost" inputmode="decimal" value="{{ repair.estimated_cost if repair.estimated_cost is not none else '' }}"></label>
+          </div>
+          <label>הערה<textarea name="note" rows="2" placeholder="מה נעשה, אילו חלקים הוחלפו…"></textarea></label>
+          <label class="check"><input type="checkbox" name="visible_to_customer" value="1"> הלקוח יראה את ההערה</label>
+          <button class="primary">שמירה</button>
+        </form>
+      {% else %}
+        <p class="muted">התיקון משויך ל{{ repair.technician_name }}.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>היסטוריה</h2>
+    {{ timeline(events) }}
+    {% if history %}
+      <h2>תיקונים קודמים של המכשיר</h2>
+      <ul class="list">
+        {% for h in history %}
+          <li><a href="{{ url_for('tech.repair_detail', repair_id=h.id) }}">#{{ h.id }}</a>
+            · {{ h.received_at|dt }} · {{ h.reported_issue }}
+            {% if h.diagnosis %}<div class="muted small">{{ h.diagnosis }}</div>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf %}
+{% block title %}צוות{% endblock %}
+{% block content %}
+<h1>צוות</h1>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>שם</th><th>שם משתמש</th><th>תפקיד</th><th>מצב</th><th></th></tr></thead>
+  <tbody>
+    {% for u in staff %}
+      <tr class="{{ '' if u.active else 'muted' }}">
+        <td>{{ u.full_name }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ ROLES[u.role] }}</td>
+        <td>{{ 'פעיל' if u.active else 'מושבת' }}</td>
+        <td class="actions">
+          <form method="post" action="{{ url_for('admin.user_password', user_id=u.id) }}" class="inline">
+            {{ csrf() }}
+            <input name="password" type="password" placeholder="סיסמה חדשה" minlength="6" required autocomplete="new-password">
+            <button>עדכון</button>
+          </form>
+          {% if u.id != g.user.id %}
+          <form method="post" action="{{ url_for('admin.user_toggle', user_id=u.id) }}" class="inline">
+            {{ csrf() }}
+            <button class="link">{{ 'השבתה' if u.active else 'הפעלה' }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<form method="post" class="card">
+  {{ csrf() }}
+  <h2>משתמש חדש</h2>
+  <div class="grid">
+    <label>שם מלא<input name="full_name" required></label>
+    <label>שם משתמש<input name="username" required autocomplete="off"></label>
+    <label>תפקיד
+      <select name="role"><option value="technician">טכנאי</option><option value="admin">מנהל</option></select></label>
+    <label>סיסמה<input name="password" type="password" minlength="6" required autocomplete="new-password"></label>
+  </div>
+  <button class="primary">הוספה</button>
+</form>
+{% endblock %}
